@@ -1,0 +1,6 @@
+# Compiled files
+*.tfstate
+*.tfstate.backup
+
+# Executable files
+*.exe
