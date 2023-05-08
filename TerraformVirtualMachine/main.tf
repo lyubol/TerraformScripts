@@ -152,7 +152,7 @@ resource "azurerm_key_vault" "app_vault" {
 # Create a secret in the key vault
 resource "azurerm_key_vault_secret" "vmpassword" {
   name         = "vmpassword"
-  value        = "Azure123"
+  value        = "Az123"
   key_vault_id = azurerm_key_vault.app_vault.id
   depends_on = [ 
       azurerm_key_vault.app_vault
