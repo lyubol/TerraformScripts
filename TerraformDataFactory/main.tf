@@ -64,15 +64,27 @@ resource "azurerm_data_factory" "datafactory" {
      ]
 }
 
-resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+# resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+#   scope                = azurerm_storage_account.adls.id
+#   role_definition_name = "Storage Blob Data Contributor"
+#   principal_id         = azurerm_data_factory.datafactory.principal_id
+
+#   depends_on = [ 
+#       azurerm_resource_group.datafactory_grp,
+#       azurerm_data_factory.datafactory
+#    ]
+# }
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "example" {
+}
+
+resource "azurerm_role_assignment" "example" {
   scope                = azurerm_storage_account.adls.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_data_factory.datafactory.principal_id
-
-  depends_on = [ 
-      azurerm_resource_group.datafactory_grp,
-      azurerm_data_factory.datafactory
-   ]
+  principal_id         = data.azurerm_client_config.example.object_id
 }
 
 # Linked service - Key Vault
@@ -96,7 +108,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "linked_servic
   sas_uri = "https://${var.storage_account_name}.blob.core.windows.net"
   key_vault_sas_token {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.linked_service_key_vault.name
-    secret_name         = "secret"
+    secret_name         = "adls-sas"
   }
 
   depends_on = [ 
