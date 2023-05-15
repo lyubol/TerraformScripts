@@ -51,6 +51,11 @@ data "azurerm_storage_account_sas" "sas_key" {
    ]
 }
 
+data "azurerm_storage_account" "adls_data" {
+  name                = var.storage_account_name
+  resource_group_name = var.resource_group_name
+}
+
 #################################################################
 ### AZURE DATA FACTORY 
 #################################################################
@@ -58,33 +63,13 @@ resource "azurerm_data_factory" "datafactory" {
     location                = azurerm_resource_group.datafactory_grp.location
     name                    = var.datafactory_name
     resource_group_name     = var.resource_group_name
+    identity {
+      type = "SystemAssigned"
+    }
 
     depends_on = [ 
         azurerm_resource_group.datafactory_grp
      ]
-}
-
-# resource "azurerm_role_assignment" "storage_blob_data_contributor" {
-#   scope                = azurerm_storage_account.adls.id
-#   role_definition_name = "Storage Blob Data Contributor"
-#   principal_id         = azurerm_data_factory.datafactory.principal_id
-
-#   depends_on = [ 
-#       azurerm_resource_group.datafactory_grp,
-#       azurerm_data_factory.datafactory
-#    ]
-# }
-
-data "azurerm_subscription" "primary" {
-}
-
-data "azurerm_client_config" "example" {
-}
-
-resource "azurerm_role_assignment" "example" {
-  scope                = azurerm_storage_account.adls.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azurerm_client_config.example.object_id
 }
 
 # Linked service - Key Vault
@@ -101,22 +86,19 @@ resource "azurerm_data_factory_linked_service_key_vault" "linked_service_key_vau
 }
 
 # Linked service - Azure Data Lake Storage
-resource "azurerm_data_factory_linked_service_azure_blob_storage" "linked_service_storage_account" {
-  name            = "linkadls"
-  data_factory_id = azurerm_data_factory.datafactory.id
-
-  sas_uri = "https://${var.storage_account_name}.blob.core.windows.net"
-  key_vault_sas_token {
-    linked_service_name = azurerm_data_factory_linked_service_key_vault.linked_service_key_vault.name
-    secret_name         = "adls-sas"
-  }
+resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "linked_service_adls" {
+  name                  = "linkadls"
+  data_factory_id       = azurerm_data_factory.datafactory.id
+  storage_account_key   = data.azurerm_storage_account.adls_data.primary_access_key
+  url                   = "https://${var.storage_account_name}.dfs.core.windows.net"
 
   depends_on = [ 
       azurerm_resource_group.datafactory_grp,
-      azurerm_data_factory.datafactory,
-      azurerm_key_vault.key_vault
+      azurerm_data_factory.datafactory
    ]
 }
+
+
 
 #################################################################
 ### AZURE STORAGE ACCOUNT
