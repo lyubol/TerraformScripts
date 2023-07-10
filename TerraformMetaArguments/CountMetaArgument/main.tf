@@ -24,7 +24,6 @@ resource "azurerm_storage_account" "appstore1457684" {
  ]
 }
 
-# # This section creates multiple containers within a storage account using count index
 # resource "azurerm_storage_account" "appstore1457684" {
 #   name                     = "appstore1457684"
 #   resource_group_name      = local.resource_group_name
@@ -38,9 +37,14 @@ resource "azurerm_storage_account" "appstore1457684" {
 #  ]
 # }
 
+# # This section creates multiple containers within a storage account using count index
 # resource "azurerm_storage_container" "data" {
 #   count                 = 3
 #   name                  = "data${count.index}"
 #   storage_account_name  = azurerm_storage_account.appstore1457684.name
 #   container_access_type = "private"
+
+#   depends_on = [ 
+#     azurerm_storage_account.appstore1457684
+#   ]
 # }
