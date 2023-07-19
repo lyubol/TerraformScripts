@@ -29,6 +29,11 @@ resource "azurerm_mssql_database" "appdb" {
   license_type   = "LicenseIncluded"
   max_size_gb    = 2
   sku_name       = "S0"
+  lifecycle {
+    ignore_changes = [ 
+        license_type
+     ]
+  }  
 
   depends_on = [ 
     azurerm_mssql_server.sqlserver
