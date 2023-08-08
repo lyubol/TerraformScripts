@@ -37,12 +37,11 @@ resource "azurerm_lb_backend_address_pool" "poolA" {
 }
 
 resource "azurerm_lb_backend_address_pool_address" "appvmaddress" {
-  count                   = "appvm${count.index}"
-  name                    = "example"
-  backend_address_pool_id = data.azurerm_lb_backend_address_pool.poolA.id
-  virtual_network_id      = data.azurerm_virtual_network.appnetwork.id
-  ip_address              = azurerm_network_interface.appinterface[count.index].private_ip_address_allocation
-
+  count                   = var.number_of_machines
+  name                    = "appvm${count.index}"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.poolA.id
+  virtual_network_id      = azurerm_virtual_network.appnetwork.id
+  ip_address              = azurerm_network_interface.appinterface[count.index].private_ip_address
   depends_on = [ 
     azurerm_lb_backend_address_pool.poolA, 
     azurerm_network_interface.appinterface
@@ -67,9 +66,11 @@ resource "azurerm_lb_rule" "RuleA" {
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "frontend-ip"
+  probe_id                       = azurerm_lb_probe.probeA.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.poolA.id]
 
   depends_on = [ 
-    azurerm_lb.appbalancer
+    azurerm_lb.appbalancer,
+    azurerm_lb_probe.probeA
   ]
 }
